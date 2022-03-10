@@ -20,5 +20,4 @@ mbi_file = {f'{file}': {'CE07':
          }
     }
 }
-print('fuk')
 MBIfile.read_frames(MBIfile, mbi_file)
