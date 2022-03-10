@@ -272,7 +272,7 @@ class MBIfile():
                                         "outline": {"level": 1, "text": "none"}
                                     },
 
-                                    {"image": fr'graphs\{analyte.name}_{plot_name}.jpg'},
+                                    {"image": fr'graphs\{analyte.name}_{file_name}.jpg'},
 
                                 ]
 
@@ -310,7 +310,7 @@ class MBIfile():
                                         "outline": {"level": 1, "text": "wutthisdo"}
                                     },
 
-                                    f'Report for {analyte.name}_{plot_name}\n \nCCS: {analyte.ccs}\n{save_gauss_report}'
+                                    f'Report for {analyte.name}_{file_name}\n \nCCS: {analyte.ccs}\n{save_gauss_report}'
                                 ]
 
                             },

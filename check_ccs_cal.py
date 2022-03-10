@@ -20,4 +20,5 @@ mbi_file = {f'{file}': {'CE07':
          }
     }
 }
-MBIfile.read_frames(MBIfile, mbi_file)
+if __name__ == '__main__':
+    MBIfile.read_frames(MBIfile, mbi_file)
