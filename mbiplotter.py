@@ -6,6 +6,7 @@
 """Test CCS calibration components & endpoint"""
 import os
 import json
+import shutil
 from typing import List, Dict, Tuple, Optional
 import matplotlib.pyplot as plt
 from pdfme import build_pdf
@@ -18,6 +19,7 @@ from mobiliondata.datareader import DataReader, FrameCollection
 from models2 import QuartileMethod, PeakPicker, GaussianFitter
 from analyte import Analyte
 from channelvalueserializer import ChannelValueSerializer
+from PyPDF2 import PdfFileMerger
 
 
 class MBIfile():
@@ -94,12 +96,20 @@ class MBIfile():
     def read_frames(self, mbi_data):
         """test reading in frames for stock data"""
         # avoid the DB so this is fast, create our analytes (just for the polarity of the test)
-        all_experiments_data = []
+        all_pdfs = []
         all_analytes: List[Analyte] = []
         for item in MBIfile.analyte_data:
             analyte = Analyte(name=item['name'], mz_value=item['mz_value'], polarity=item['polarity'], ccs=item['ccs'], ccs_range=item['ccs_range'])
             all_analytes.append(analyte)
 
+        if os.path.exists('graphs') == False:
+            os.makedirs('graphs')
+        elif os.path.exists('graphs') == True:
+            pass
+        if os.path.exists('pdfs') == False:
+            os.makedirs('pdfs')
+        elif os.path.exists('pdfs') == True:
+            pass
 
         mbi_files: {} = mbi_data
         for mbi_file_path in mbi_files:
@@ -269,7 +279,7 @@ class MBIfile():
 
                                     {
                                         ".": " ", "style": "title", "label": "title1",
-                                        "outline": {"level": 1, "text": "none"}
+                                        "outline": {"level": 1, "text": f"{analyte.name} graph"}
                                     },
 
                                     {"image": fr'graphs\{analyte.name}_{file_name}.jpg'},
@@ -306,8 +316,8 @@ class MBIfile():
                                 "content": [
 
                                     {
-                                        ".": "CE07_Andys_CCS_Test_that_WILL_work.mbi", "style": "title", "label": "title1",
-                                        "outline": {"level": 1, "text": "wutthisdo"}
+                                        ".": " ", "style": "title", "label": "title1",
+                                        "outline": {"level": 1, "text": f"{analyte.name} report"}
                                     },
 
                                     f'Report for {analyte.name}_{file_name}\n \nCCS: {analyte.ccs}\n{save_gauss_report}'
@@ -325,6 +335,8 @@ class MBIfile():
                     temp_coordinate_dict = {}
                     for idx in range(len(x)):
                         temp_coordinate_dict.update({x[idx]: y[idx]})
+                    all_pdfs.append(fr'pdfs\{analyte.name}_{file_name}_graph.pdf')
+                    all_pdfs.append(fr'pdfs\{analyte.name}_{file_name}_report.pdf')
             document = {
                 "style": {
                     "margin_bottom": 5, "text_align": "j",
@@ -351,17 +363,25 @@ class MBIfile():
                         "content": [
 
                             {
-                                ".": "CE07_Andys_CCS_Test_that_WILL_work.mbi", "style": "title", "label": "title1",
-                                "outline": {"level": 1, "text": "none"}
+                                ".": " ", "style": "title", "label": "title1",
+                                "outline": {"level": 1, "text": "CCS values and coefficients"}
                             },
 
-                            f'at_surfing: {at_surfing}ms\nCCS-Min: {ccs_min}\nCCS-Max: {ccs_max}\nCoefficients: {ccs_coefficients}'
+                            f'Surfing, CCS, and Coefficients\n \nat_surfing: {at_surfing}ms\nCCS-Min: {ccs_min}\nCCS-Max: {ccs_max}\nCoefficients: {ccs_coefficients}'
                         ]
 
                     },
 
                 ]
             }
-            with open('endpage.pdf',
+            with open(r'pdfs\endpage.pdf',
                       'wb') as f:
                 build_pdf(document, f)
+            all_pdfs.append(r'pdfs\endpage.pdf')
+            merger = PdfFileMerger()
+            for pdf in all_pdfs:
+                merger.append(pdf)
+            merger.write(f'{file_name}_report.pdf')
+            merger.close()
+            shutil.rmtree('graphs')
+            shutil.rmtree('pdfs')
