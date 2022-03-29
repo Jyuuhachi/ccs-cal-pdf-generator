@@ -1,4 +1,4 @@
-from mbiplotter import MBIfile
+from readbaddata import MBIfile
 import argparse
 
 parser = argparse.ArgumentParser()

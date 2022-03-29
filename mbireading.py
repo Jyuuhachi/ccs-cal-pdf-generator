@@ -28,6 +28,7 @@ for frm_idx, frm in enumerate(frames):
         max_scans = len(frm)
         max_idx = frm_idx
     session = frame_col[frm_idx + 1]
+    session_dt_period = float(session.metadata(key='frm-dt-period'))
     session_tim = mbifile.datacube[f'frame-{frm_idx + 1}-data'][DataCubeKeys.AT_TIC][:]
     scan_entries = []
     num_gates = []
@@ -60,21 +61,21 @@ for frm_idx, frm in enumerate(frames):
         unpacked.append(scan)
     unpacked_dict.update({f'frame {frm_idx}': {'num_gates': num_gates, 'num_samples': num_samples,
                 'scans': unpacked, 'scan_tic': scan_tic, 'timestamps': list(session.trigger_timestamps[:])}})
-    temp_scan_holder = []
+    at_gate_intensity_dict = {}
+    for index, item in enumerate(unpacked):
+        if item != {}:
+            arrival_time = index*session_dt_period
+            atgateintensity_entry = {arrival_time: item}
+            at_gate_intensity_dict.update(atgateintensity_entry)
+        else:
+            pass
+
+    temp_scan_holder = list(at_gate_intensity_dict.values())
     x_values = []
     y_values = []
-    for entries in unpacked:
-        if entries == {}:
-            pass
-        else:
-            temp_scan_holder.append(entries)
-    for scan_values in temp_scan_holder:
-        temp_index = []
-        temp_intensity = []
-        temp_index.extend(list(scan_values.keys()))
-        temp_intensity.extend(list(scan_values.values()))
-        x_values.extend(temp_index)
-        y_values.extend(temp_intensity)
+    for thing in temp_scan_holder:
+        x_values.extend(list(thing.keys()))
+        y_values.extend(list(thing.values()))
     print('break')
     y = 0
     plt.xlabel('digitizer scans')
@@ -89,6 +90,6 @@ for frm_idx, frm in enumerate(frames):
 
 print('break')
 #scan_entries = unpacked_dict.get('scans') #gate index values and intensity stored in a dictionary at a position
-#num_gates = unpacked_dict.get('num_gates') # indexed location of recorded event in list
-#num_samples = unpacked_dict.get('num_samples') # amount of recordings of said event
+#num_gates = unpacked_dict.get('num_gates') # index of ToF events (as an array)
+#num_samples = unpacked_dict.get('num_samples') # number of scans in each ToF event
 #scan_tic = unpacked_dict.get('scan_tic') # time in ms(?) of each recording pulse
